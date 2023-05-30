@@ -5,6 +5,7 @@ import * as _ from 'lodash';
 // import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 // implements OnGatewayInit<Namespace>, OnGatewayConnection, OnGatewayDisconnect {
 export abstract class SocketServer extends LoggerWrapper {
+    
     // --------------------------------------------------------------------------
     //
     //  Properties
