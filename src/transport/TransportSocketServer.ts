@@ -1,5 +1,5 @@
 
-import { Logger, ObservableData } from '@ts-core/common';
+import { ILogger, ObservableData } from '@ts-core/common';
 import { ITransportSocketRequestPayload, TransportSocketRequestPayload, ITransportSocketResponsePayload, TRANSPORT_SOCKET_CONNECTED_EVENT, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD } from '@ts-core/socket-common';
 import { Subject, filter, map, Observable } from 'rxjs';
 import { Namespace, Socket } from 'socket.io';
@@ -7,7 +7,7 @@ import { SocketServer } from '../SocketServer';
 import * as _ from 'lodash';
 
 export abstract class TransportSocketServer<U = any, V = any> extends SocketServer {
-    
+
     // --------------------------------------------------------------------------
     //
     //  Properties
@@ -22,7 +22,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    constructor(logger: Logger) {
+    constructor(logger: ILogger) {
         super(logger);
         this.observer = new Subject();
     }
@@ -153,14 +153,9 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     }
 }
 
-export interface ITransportSocketServer {
-    get sent(): Observable<ITransportSocketRequestPayload>;
-    get received(): Observable<ITransportSocketResponsePayload>;
-}
-
 export type TransportSocketServerEventData = ITransportSocketRequestPayload | ITransportSocketResponsePayload;
 
-export enum TransportSocketServerEvent {
+enum TransportSocketServerEvent {
     TRANSPORT_COMMAND_REQUEST = 'TRANSPORT_COMMAND_REQUEST',
     TRANSPORT_COMMAND_RESPONSE = 'TRANSPORT_COMMAND_RESPONSE',
 }

@@ -49,12 +49,11 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
 
     protected async eventRequestExecute<U>(event: ITransportEvent<U>, options?: ITransportSocketEventOptions): Promise<void> {
         try {
-            let method = TRANSPORT_SOCKET_COMMAND_EVENT;
             if (!_.isNil(options.userId)) {
-                await this.socket.emitToUser(method, event, options.userId, options.isOnlyOne);
+                await this.socket.emitToUser(TRANSPORT_SOCKET_COMMAND_EVENT, event, options.userId, options.isOnlyOne);
             }
             else if (!_.isNil(options.clientId)) {
-                await this.socket.emitToClient(method, event, options.clientId);
+                await this.socket.emitToClient(TRANSPORT_SOCKET_COMMAND_EVENT, event, options.clientId);
             }
             else {
                 throw new ExtendedError(`Command options "userId" or "clientId" must be not nil`);
