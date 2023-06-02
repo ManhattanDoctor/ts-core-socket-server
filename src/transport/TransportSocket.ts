@@ -96,4 +96,10 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
             this.commandResponseErrorCatch(command, request, error);
         }
     }
+
+    protected async commandResponseDispatch<U>(command: ITransportCommand<U>, options: ITransportSocketCommandOptions, isNeedReply: boolean): Promise<void> {
+        command['userId'] = options.userId;
+        command['clientId'] = options.clientId;
+        return super.commandResponseDispatch(command, options, isNeedReply);
+    }
 }
