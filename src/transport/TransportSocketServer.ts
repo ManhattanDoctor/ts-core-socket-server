@@ -1,9 +1,9 @@
 
-import { ILogger, ObservableData } from '@ts-core/common';
-import { ITransportSocketRequestPayload, TransportSocketRequestPayload, ITransportSocketResponsePayload, TRANSPORT_SOCKET_CONNECTED_EVENT, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD } from '@ts-core/socket-common';
+import { ILogger, ObservableData, ITransportEvent } from '@ts-core/common';
+import { ITransportSocketRequestPayload, TransportSocketRequestPayload, ITransportSocketResponsePayload, TRANSPORT_SOCKET_CONNECTED, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD, TRANSPORT_SOCKET_EVENT, ITransportSocketEventOptions } from '@ts-core/socket-common';
 import { Subject, filter, map, Observable } from 'rxjs';
 import { Namespace, Socket } from 'socket.io';
-import { SocketServer } from '../SocketServer';
+import { SocketServer, SocketClient } from '../SocketServer';
 import * as _ from 'lodash';
 
 export abstract class TransportSocketServer<U = any, V = any> extends SocketServer {
@@ -35,16 +35,18 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
 
     protected async clientHandshake(client: Socket): Promise<void> {
         let userId = client.data.userId = await this.getClientUserId(client);
-        await client.join(this.getUserRoom(userId));
-        client.emit(TRANSPORT_SOCKET_CONNECTED_EVENT);
+        await this.joinClientToRoom(client.id, this.getUserRoom(userId));
+        client.emit(TRANSPORT_SOCKET_CONNECTED);
     }
 
     protected clientEventListenersAdd(client: Socket): void {
+        client.on(TRANSPORT_SOCKET_EVENT, item => this.transportEventRequestHandler(client, item));
         client.on(TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, item => this.transportCommandRequestHandler(client, item));
         client.on(TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD, item => this.transportCommandResponseHandler(client, item));
     }
 
     protected clientEventListenersRemove(client: Socket): void {
+        client.removeAllListeners(TRANSPORT_SOCKET_EVENT);
         client.removeAllListeners(TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD);
         client.removeAllListeners(TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD);
     }
@@ -64,6 +66,13 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         return `user${id}`;
     }
 
+    protected parseClient(client: SocketClient): Socket {
+        if (_.isNil(client)) {
+            return null;
+        }
+        return _.isString(client) ? this.namespace.sockets.get(client) : client;
+    }
+
     protected abstract getClientUserId(client: Socket): Promise<string>;
 
     // --------------------------------------------------------------------------
@@ -80,6 +89,15 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     protected async clientConnectionHandler(client: Socket): Promise<void> {
         await super.clientConnectionHandler(client);
         await this.clientHandshake(client);
+    }
+
+    protected transportEventRequestHandler<U>(client: Socket, item: ITransportEvent<U>): void {
+        if (_.isNil(item) || _.isNil(item.uid)) {
+            return;
+        }
+        item['userId'] = client.data.userId;
+        item['clientId'] = client.id;
+        this.observer.next(new ObservableData(TransportSocketServerEvent.TRANSPORT_EVENT, item));
     }
 
     protected transportCommandRequestHandler(client: Socket, item: ITransportSocketRequestPayload): void {
@@ -112,10 +130,32 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         items.forEach(item => this.emitToClient(name, data, item));
     }
 
-    public async emitToClient<T>(name: string, data: T, clientId: string): Promise<void> {
-        let client = this.namespace.sockets.get(clientId);
+    public async emitToClient<T>(name: string, data: T, client: SocketClient): Promise<void> {
+        let item = this.parseClient(client);
+        if (!_.isNil(item)) {
+            item.emit(name, data);
+        }
+    }
+
+    public async emitToRoom<T>(name: string, data: T, room: string): Promise<void> {
+        this.namespace.to(room).emit(name, data);
+    }
+
+    // --------------------------------------------------------------------------
+    //
+    //  Room Methods
+    //
+    // --------------------------------------------------------------------------
+
+    public async joinUserToRoom(userId: string, room: string): Promise<void> {
+        let items = await this.getClients(userId);
+        items.forEach(item => this.joinUserToRoom(item, room));
+    }
+
+    public async joinClientToRoom(client: SocketClient, room: string): Promise<void> {
+        let item = this.parseClient(client);
         if (!_.isNil(client)) {
-            client.emit(name, data);
+            await item.join(room);
         }
     }
 
@@ -138,6 +178,13 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         return this.observer.asObservable();
     }
 
+    public get event(): Observable<ITransportEvent<any>> {
+        return this.events.pipe(
+            filter(item => item.type === TransportSocketServerEvent.TRANSPORT_EVENT),
+            map(item => item.data as ITransportEvent<any>)
+        );
+    }
+
     public get request(): Observable<ITransportSocketRequestPayload> {
         return this.events.pipe(
             filter(item => item.type === TransportSocketServerEvent.TRANSPORT_COMMAND_REQUEST),
@@ -153,9 +200,10 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     }
 }
 
-export type TransportSocketServerEventData = ITransportSocketRequestPayload | ITransportSocketResponsePayload;
+export type TransportSocketServerEventData = ITransportSocketRequestPayload | ITransportSocketResponsePayload | ITransportEvent<any>;
 
 enum TransportSocketServerEvent {
+    TRANSPORT_EVENT = 'TRANSPORT_EVENT',
     TRANSPORT_COMMAND_REQUEST = 'TRANSPORT_COMMAND_REQUEST',
     TRANSPORT_COMMAND_RESPONSE = 'TRANSPORT_COMMAND_RESPONSE',
 }

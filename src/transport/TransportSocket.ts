@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { ExtendedError, ILogger, ITransportCommand, ITransportCommandAsync, ITransportEvent, ITransportSettings } from '@ts-core/common';
 import { takeUntil } from 'rxjs';
-import { TransportSocketImpl, TRANSPORT_SOCKET_COMMAND_EVENT, ITransportSocketCommandOptions, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, ITransportSocketEventOptions, ITransportSocketCommandRequest } from '@ts-core/socket-common';
+import { TransportSocketImpl, ITransportSocketCommandOptions, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, ITransportSocketEventOptions, ITransportSocketCommandRequest, TRANSPORT_SOCKET_EVENT } from '@ts-core/socket-common';
 import { TransportSocketServer } from './TransportSocketServer';
 
 export class TransportSocket<S extends TransportSocketServer = TransportSocketServer> extends TransportSocketImpl {
@@ -23,6 +23,7 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
         super(logger, settings);
 
         this.socket = socket;
+        this.socket.request.pipe(takeUntil(this.destroyed)).subscribe(this.requestEventReceived);
         this.socket.request.pipe(takeUntil(this.destroyed)).subscribe(this.responseRequestReceived);
         this.socket.response.pipe(takeUntil(this.destroyed)).subscribe(this.requestResponseReceived);
     }
@@ -50,10 +51,10 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
     protected async eventRequestExecute<U>(event: ITransportEvent<U>, options?: ITransportSocketEventOptions): Promise<void> {
         try {
             if (!_.isNil(options.userId)) {
-                await this.socket.emitToUser(TRANSPORT_SOCKET_COMMAND_EVENT, event, options.userId, options.isOnlyOne);
+                await this.socket.emitToUser(TRANSPORT_SOCKET_EVENT, event, options.userId, options.isOnlyOne);
             }
             else if (!_.isNil(options.clientId)) {
-                await this.socket.emitToClient(TRANSPORT_SOCKET_COMMAND_EVENT, event, options.clientId);
+                await this.socket.emitToClient(TRANSPORT_SOCKET_EVENT, event, options.clientId);
             }
             else {
                 throw new ExtendedError(`Command options "userId" or "clientId" must be not nil`);

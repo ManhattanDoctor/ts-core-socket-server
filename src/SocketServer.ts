@@ -95,3 +95,10 @@ export abstract class SocketServer extends LoggerWrapper {
         return this._namespace;
     }
 }
+
+export interface ISocketUser {
+    userId?: string;
+    clientId: string;
+}
+
+export type SocketClient = string | Socket;
