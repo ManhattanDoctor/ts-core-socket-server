@@ -1,6 +1,6 @@
 
-import { ILogger, ObservableData, ITransportEvent } from '@ts-core/common';
-import { ITransportSocketRequestPayload, TransportSocketRequestPayload, ITransportSocketResponsePayload, TRANSPORT_SOCKET_CONNECTED, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD, TRANSPORT_SOCKET_EVENT, ITransportSocketEventOptions } from '@ts-core/socket-common';
+import { ILogger, ObservableData, ITransportEvent, ExtendedError } from '@ts-core/common';
+import { ITransportSocketRequestPayload, TransportSocketRequestPayload, ITransportSocketResponsePayload, TRANSPORT_SOCKET_CONNECTED, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD, TRANSPORT_SOCKET_EVENT, ITransportSocketEventOptions, TRANSPORT_SOCKET_ERROR } from '@ts-core/socket-common';
 import { Subject, filter, map, Observable } from 'rxjs';
 import { Namespace, Socket } from 'socket.io';
 import { SocketServer, SocketClient } from '../SocketServer';
@@ -87,8 +87,14 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     }
 
     protected async clientConnectionHandler(client: Socket): Promise<void> {
-        await super.clientConnectionHandler(client);
-        await this.clientHandshake(client);
+        try {
+            await super.clientConnectionHandler(client);
+            await this.clientHandshake(client);
+        }
+        catch (error) {
+            client.emit(TRANSPORT_SOCKET_ERROR, ExtendedError.create(error).toObject());
+            throw error;
+        }
     }
 
     protected transportEventRequestHandler<U>(client: Socket, item: ITransportEvent<U>): void {
@@ -178,21 +184,21 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         return this.observer.asObservable();
     }
 
-    public get event(): Observable<ITransportEvent<any>> {
+    public get evented(): Observable<ITransportEvent<any>> {
         return this.events.pipe(
             filter(item => item.type === TransportSocketServerEvent.TRANSPORT_EVENT),
             map(item => item.data as ITransportEvent<any>)
         );
     }
 
-    public get request(): Observable<ITransportSocketRequestPayload> {
+    public get requested(): Observable<ITransportSocketRequestPayload> {
         return this.events.pipe(
             filter(item => item.type === TransportSocketServerEvent.TRANSPORT_COMMAND_REQUEST),
             map(item => item.data as ITransportSocketRequestPayload)
         );
     }
 
-    public get response(): Observable<ITransportSocketResponsePayload> {
+    public get responsed(): Observable<ITransportSocketResponsePayload> {
         return this.events.pipe(
             filter(item => item.type === TransportSocketServerEvent.TRANSPORT_COMMAND_RESPONSE),
             map(item => item.data as ITransportSocketResponsePayload)
