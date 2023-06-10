@@ -1,11 +1,12 @@
 import { ILogger, LoggerWrapper } from '@ts-core/common';
 import { Namespace, Socket } from 'socket.io';
 import * as _ from 'lodash';
+import { TransportSocketUserId } from '@ts-core/socket-common';
 
 // import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
 // implements OnGatewayInit<Namespace>, OnGatewayConnection, OnGatewayDisconnect {
 export abstract class SocketServer extends LoggerWrapper {
-    
+
     // --------------------------------------------------------------------------
     //
     //  Properties
@@ -96,8 +97,8 @@ export abstract class SocketServer extends LoggerWrapper {
     }
 }
 
-export interface ISocketUser {
-    userId?: string;
+export interface ISocketUser<U extends TransportSocketUserId = TransportSocketUserId> {
+    userId?: U;
     clientId: string;
 }
 

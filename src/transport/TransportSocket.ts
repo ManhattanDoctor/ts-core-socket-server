@@ -11,7 +11,7 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
     //
     // --------------------------------------------------------------------------
 
-    protected socket: S;
+    protected _socket: S;
 
     // --------------------------------------------------------------------------
     //
@@ -22,24 +22,10 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
     constructor(logger: ILogger, settings: ITransportSettings, socket: S) {
         super(logger, settings);
 
-        this.socket = socket;
+        this._socket = socket;
         this.socket.evented.pipe(takeUntil(this.destroyed)).subscribe(this.requestEventReceived);
         this.socket.requested.pipe(takeUntil(this.destroyed)).subscribe(this.responseRequestReceived);
         this.socket.responsed.pipe(takeUntil(this.destroyed)).subscribe(this.requestResponseReceived);
-    }
-
-    // --------------------------------------------------------------------------
-    //
-    //  Public Methods
-    //
-    // --------------------------------------------------------------------------
-
-    public destroy(): void {
-        if (this.isDestroyed) {
-            return;
-        }
-        super.destroy();
-        this.socket = null;
     }
 
     // --------------------------------------------------------------------------
@@ -103,4 +89,29 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
         command['clientId'] = options.clientId;
         return super.commandResponseRequestDispatch(command, options, isNeedReply);
     }
+
+    // --------------------------------------------------------------------------
+    //
+    //  Public Methods
+    //
+    // --------------------------------------------------------------------------
+
+    public destroy(): void {
+        if (this.isDestroyed) {
+            return;
+        }
+        super.destroy();
+        this._socket = null;
+    }
+
+    // --------------------------------------------------------------------------
+    //
+    //  Public Properties
+    //
+    // --------------------------------------------------------------------------
+
+    public get socket(): S {
+        return this._socket;
+    }
+
 }

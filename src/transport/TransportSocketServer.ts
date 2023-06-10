@@ -5,6 +5,7 @@ import { Subject, filter, map, Observable } from 'rxjs';
 import { Namespace, Socket } from 'socket.io';
 import { SocketServer, SocketClient } from '../SocketServer';
 import * as _ from 'lodash';
+import { TransportSocketUserId } from '@ts-core/socket-common';
 
 export abstract class TransportSocketServer<U = any, V = any> extends SocketServer {
 
@@ -57,12 +58,12 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    protected async getClients(userId?: string, isOnlyOne?: boolean): Promise<Set<string>> {
+    protected async getClients(userId?: TransportSocketUserId, isOnlyOne?: boolean): Promise<Set<string>> {
         let items = !_.isNil(userId) ? await this.namespace.to(this.getUserRoom(userId)).allSockets() : await this.namespace.allSockets();
         return !isOnlyOne ? items : new Set<string>([items.values().next().value]);
     }
 
-    protected getUserRoom(id: string): string {
+    protected getUserRoom(id: TransportSocketUserId): string {
         return `user${id}`;
     }
 
@@ -73,7 +74,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         return _.isString(client) ? this.namespace.sockets.get(client) : client;
     }
 
-    protected abstract getClientUserId(client: Socket): Promise<string>;
+    protected abstract getClientUserId(client: Socket): Promise<TransportSocketUserId>;
 
     // --------------------------------------------------------------------------
     //
@@ -131,7 +132,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    public async emitToUser<T>(name: string, data: T, userId: string, isOnlyOne?: boolean): Promise<void> {
+    public async emitToUser<T>(name: string, data: T, userId: TransportSocketUserId, isOnlyOne?: boolean): Promise<void> {
         let items = await this.getClients(userId, isOnlyOne);
         items.forEach(item => this.emitToClient(name, data, item));
     }
@@ -153,7 +154,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    public async joinUserToRoom(userId: string, room: string): Promise<void> {
+    public async joinUserToRoom(userId: TransportSocketUserId, room: string): Promise<void> {
         let items = await this.getClients(userId);
         items.forEach(item => this.joinUserToRoom(item, room));
     }
