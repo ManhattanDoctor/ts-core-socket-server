@@ -36,7 +36,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
 
     protected async clientHandshake(client: Socket): Promise<void> {
         let userId = client.data.userId = await this.getClientUserId(client);
-        await this.joinClientToRoom(client.id, this.getUserRoom(userId));
+        await this.addClientToRoom(client.id, this.getUserRoom(userId));
         client.emit(TRANSPORT_SOCKET_CONNECTED);
     }
 
@@ -154,15 +154,27 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    public async joinUserToRoom(userId: TransportSocketUserId, room: string): Promise<void> {
+    public async addUserToRoom(userId: TransportSocketUserId, room: string): Promise<void> {
         let items = await this.getClients(userId);
-        items.forEach(item => this.joinUserToRoom(item, room));
+        items.forEach(item => this.addClientToRoom(item, room));
     }
 
-    public async joinClientToRoom(client: SocketClient, room: string): Promise<void> {
+    public async addClientToRoom(client: SocketClient, room: string): Promise<void> {
         let item = this.parseClient(client);
         if (!_.isNil(client)) {
             await item.join(room);
+        }
+    }
+
+    public async removeUserFromRoom(userId: TransportSocketUserId, room: string): Promise<void> {
+        let items = await this.getClients(userId);
+        items.forEach(item => this.removeClientFromRoom(item, room));
+    }
+
+    public async removeClientFromRoom(client: SocketClient, room: string): Promise<void> {
+        let item = this.parseClient(client);
+        if (!_.isNil(client)) {
+            await item.leave(room);
         }
     }
 
