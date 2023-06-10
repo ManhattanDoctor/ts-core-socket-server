@@ -132,6 +132,10 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
+    public async emit<T>(name: string, data: T): Promise<void> {
+        this.namespace.emit(name, data);
+    }
+    
     public async emitToUser<T>(name: string, data: T, userId: TransportSocketUserId, isOnlyOne?: boolean): Promise<void> {
         let items = await this.getClients(userId, isOnlyOne);
         items.forEach(item => this.emitToClient(name, data, item));

@@ -34,19 +34,20 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
     //
     // --------------------------------------------------------------------------
 
-    protected async eventRequestExecute<U>(event: ITransportEvent<U>, options?: ITransportSocketEventOptions): Promise<void> {
+    protected async eventRequestExecute<U>(event: ITransportEvent<U>, options: ITransportSocketEventOptions): Promise<void> {
+        let method = TRANSPORT_SOCKET_EVENT;
         try {
             if (!_.isNil(options.userId)) {
-                await this.socket.emitToUser(TRANSPORT_SOCKET_EVENT, event, options.userId, options.isOnlyOne);
+                await this.socket.emitToUser(method, event, options.userId, options.isOnlyOne);
             }
             else if (!_.isNil(options.clientId)) {
-                await this.socket.emitToClient(TRANSPORT_SOCKET_EVENT, event, options.clientId);
+                await this.socket.emitToClient(method, event, options.clientId);
             }
             else if (!_.isNil(options.room)) {
-                await this.socket.emitToRoom(TRANSPORT_SOCKET_EVENT, event, options.room);
+                await this.socket.emitToRoom(method, event, options.room);
             }
             else {
-                throw new ExtendedError(`Command options "userId" or "clientId" must be not nil`);
+                await this.socket.emit(method, event);
             }
         }
         catch (error) {
@@ -55,19 +56,20 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
     }
 
     protected async commandRequestExecute<U>(command: ITransportCommand<U>, options: ITransportSocketCommandOptions, isNeedReply: boolean): Promise<void> {
+        let method = TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD;
         let payload = this.createRequestPayload(command, options, isNeedReply);
         try {
             if (!_.isNil(options.userId)) {
-                await this.socket.emitToUser(TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, payload, options.userId, options.isOnlyOne);
+                await this.socket.emitToUser(method, payload, options.userId, options.isOnlyOne);
             }
             else if (!_.isNil(options.clientId)) {
-                await this.socket.emitToClient(TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, payload, options.clientId);
+                await this.socket.emitToClient(method, payload, options.clientId);
             }
             else if (!_.isNil(options.room)) {
-                await this.socket.emitToRoom(TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, payload, options.room);
+                await this.socket.emitToRoom(method, payload, options.room);
             }
             else {
-                throw new ExtendedError(`Command options "userId" or "clientId" must be not nil`);
+                await this.socket.emit(method, payload);
             }
         }
         catch (error) {
