@@ -8,6 +8,27 @@ import * as _ from 'lodash';
 import { TransportSocketUserId } from '@ts-core/socket-common';
 
 export abstract class TransportSocketServer<U = any, V = any> extends SocketServer {
+    // --------------------------------------------------------------------------
+    //
+    //  Static Properties
+    //
+    // --------------------------------------------------------------------------
+
+    public static USER_ROOM_REG_EXP = new RegExp(`user[0-9]+$`);
+
+    // --------------------------------------------------------------------------
+    //
+    //  Static Methods
+    //
+    // --------------------------------------------------------------------------
+
+    public static isUserRoom(room: string): boolean {
+        return TransportSocketServer.USER_ROOM_REG_EXP.test(room);
+    }
+
+    public static getUserRoom(id: TransportSocketUserId): string {
+        return `user${id}`;
+    }
 
     // --------------------------------------------------------------------------
     //
@@ -36,7 +57,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
 
     protected async clientHandshake(client: Socket): Promise<void> {
         let userId = client.data.userId = await this.getClientUserId(client);
-        await this.addClientToRoom(client.id, this.getUserRoom(userId));
+        await this.addClientToRoom(client.id, TransportSocketServer.getUserRoom(userId));
         client.emit(TRANSPORT_SOCKET_CONNECTED);
     }
 
@@ -59,12 +80,8 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     // --------------------------------------------------------------------------
 
     protected async getClients(userId?: TransportSocketUserId, isOnlyOne?: boolean): Promise<Set<string>> {
-        let items = !_.isNil(userId) ? await this.namespace.to(this.getUserRoom(userId)).allSockets() : await this.namespace.allSockets();
+        let items = !_.isNil(userId) ? await this.namespace.to(TransportSocketServer.getUserRoom(userId)).allSockets() : await this.namespace.allSockets();
         return !isOnlyOne ? items : new Set<string>([items.values().next().value]);
-    }
-
-    protected getUserRoom(id: TransportSocketUserId): string {
-        return `user${id}`;
     }
 
     protected parseClient(client: SocketClient): Socket {
@@ -135,7 +152,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     public async emit<T>(name: string, data: T): Promise<void> {
         this.namespace.emit(name, data);
     }
-    
+
     public async emitToUser<T>(name: string, data: T, userId: TransportSocketUserId, isOnlyOne?: boolean): Promise<void> {
         let items = await this.getClients(userId, isOnlyOne);
         items.forEach(item => this.emitToClient(name, data, item));
