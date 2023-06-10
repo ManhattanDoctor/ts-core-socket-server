@@ -42,6 +42,9 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
             else if (!_.isNil(options.clientId)) {
                 await this.socket.emitToClient(TRANSPORT_SOCKET_EVENT, event, options.clientId);
             }
+            else if (!_.isNil(options.room)) {
+                await this.socket.emitToRoom(TRANSPORT_SOCKET_EVENT, event, options.room);
+            }
             else {
                 throw new ExtendedError(`Command options "userId" or "clientId" must be not nil`);
             }
@@ -59,6 +62,9 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
             }
             else if (!_.isNil(options.clientId)) {
                 await this.socket.emitToClient(TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, payload, options.clientId);
+            }
+            else if (!_.isNil(options.room)) {
+                await this.socket.emitToRoom(TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, payload, options.room);
             }
             else {
                 throw new ExtendedError(`Command options "userId" or "clientId" must be not nil`);
@@ -113,5 +119,4 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
     public get socket(): S {
         return this._socket;
     }
-
 }
