@@ -36,11 +36,16 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
 
     protected createCommand<U>(item: ITransportSocketRequestPayload<U>): ITransportCommand<U> {
         let command = super.createCommand(item);
-        if (!_.isNil(item.options)) {
-            command['userId'] = item.options.userId;
-            command['clientId'] = item.options.clientId;
-        }
+        command['userId'] = item.options.userId;
+        command['clientId'] = item.options.clientId;
         return command;
+    }
+
+    protected createEvent<U>(item: any): ITransportEvent<U> {
+        let event = super.createEvent<U>(item);
+        event['userId'] = item.userId;
+        event['clientId'] = item.clientId;
+        return event;
     }
 
     protected async eventRequestExecute<U>(event: ITransportEvent<U>, options: ITransportSocketEventOptions): Promise<void> {
