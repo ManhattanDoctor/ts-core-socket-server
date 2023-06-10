@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { ExtendedError, ILogger, ITransportCommand, ITransportCommandAsync, ITransportEvent, ITransportSettings } from '@ts-core/common';
 import { takeUntil } from 'rxjs';
-import { TransportSocketImpl, ITransportSocketCommandOptions, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, ITransportSocketEventOptions, ITransportSocketCommandRequest, TRANSPORT_SOCKET_EVENT } from '@ts-core/socket-common';
+import { TransportSocketImpl, ITransportSocketCommandOptions, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, ITransportSocketEventOptions, ITransportSocketCommandRequest, TRANSPORT_SOCKET_EVENT, ITransportSocketRequestPayload } from '@ts-core/socket-common';
 import { TransportSocketServer } from './TransportSocketServer';
 
 export class TransportSocket<S extends TransportSocketServer = TransportSocketServer> extends TransportSocketImpl {
@@ -33,6 +33,15 @@ export class TransportSocket<S extends TransportSocketServer = TransportSocketSe
     //  Protected Methods
     //
     // --------------------------------------------------------------------------
+
+    protected createCommand<U>(item: ITransportSocketRequestPayload<U>): ITransportCommand<U> {
+        let command = super.createCommand(item);
+        if (!_.isNil(item.options)) {
+            command['userId'] = item.options.userId;
+            command['clientId'] = item.options.clientId;
+        }
+        return command;
+    }
 
     protected async eventRequestExecute<U>(event: ITransportEvent<U>, options: ITransportSocketEventOptions): Promise<void> {
         let method = TRANSPORT_SOCKET_EVENT;
