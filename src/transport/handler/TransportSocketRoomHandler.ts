@@ -34,7 +34,7 @@ export class TransportSocketRoomHandler<T = string> extends TransportSocketComma
                 await this.transport.socket.addClientToRoom(clientId, name);
                 break;
             case TransportSocketRoomAction.REMOVE:
-                await this.transport.socket.removeUserFromRoom(clientId, name);
+                await this.transport.socket.removeClientFromRoom(clientId, name);
                 break;
             default:
                 throw new UnreachableStatementError(params.action);

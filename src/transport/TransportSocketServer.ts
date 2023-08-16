@@ -171,7 +171,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
 
     // --------------------------------------------------------------------------
     //
-    //  Room Methods
+    //  User Methods
     //
     // --------------------------------------------------------------------------
 
@@ -180,16 +180,27 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         items.forEach(item => this.addClientToRoom(item, room));
     }
 
+    public async removeUserFromRoom(userId: TransportSocketUserId, room: string): Promise<void> {
+        let items = await this.getClients(userId);
+        items.forEach(item => this.removeClientFromRoom(item, room));
+    }
+
+    public async disconnectUser(userId: TransportSocketUserId): Promise<void> {
+        let items = await this.getClients(userId);
+        items.forEach(item => this.disconnectClient(item));
+    }
+
+    // --------------------------------------------------------------------------
+    //
+    //  Client Methods
+    //
+    // --------------------------------------------------------------------------
+
     public async addClientToRoom(client: SocketClient, room: string): Promise<void> {
         let item = this.parseClient(client);
         if (!_.isNil(client)) {
             await item.join(room);
         }
-    }
-
-    public async removeUserFromRoom(userId: TransportSocketUserId, room: string): Promise<void> {
-        let items = await this.getClients(userId);
-        items.forEach(item => this.removeClientFromRoom(item, room));
     }
 
     public async removeClientFromRoom(client: SocketClient, room: string): Promise<void> {
@@ -198,6 +209,19 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
             await item.leave(room);
         }
     }
+
+    public async disconnectClient(client: SocketClient,): Promise<void> {
+        let item = this.parseClient(client);
+        if (!_.isNil(item)) {
+            this.disconnect(item);
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    //
+    //  Public Methods
+    //
+    // --------------------------------------------------------------------------
 
     public destroy(): void {
         if (this.isDestroyed) {

@@ -79,11 +79,15 @@ export abstract class SocketServer extends LoggerWrapper {
             await this.clientDisconnectionHandler(client);
         }
         catch (error) {
-            client.disconnect(true);
+            this.disconnect(client);
         }
         finally {
             this.clientEventListenersRemove(client);
         }
+    }
+
+    public disconnect(client: Socket): void {
+        client.disconnect(true);
     }
 
     // --------------------------------------------------------------------------
