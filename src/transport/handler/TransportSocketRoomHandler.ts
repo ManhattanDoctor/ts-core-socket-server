@@ -18,15 +18,25 @@ export class TransportSocketRoomHandler<T = string> extends TransportSocketComma
 
     // --------------------------------------------------------------------------
     //
+    //  Protected Methods
+    //
+    // --------------------------------------------------------------------------
+
+    protected async check(name: string, user: ISocketUser<TransportSocketUserId>): Promise<void> {
+        if (TransportSocketServer.isUserRoom(name)) {
+            throw new ExtendedError(`Forbidden "${name}" room`);
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    //
     //  Public Methods
     //
     // --------------------------------------------------------------------------
 
     public async execute(params: ITransportSocketRoomDto<T>, user: ISocketUser<TransportSocketUserId>): Promise<void> {
         let name = params.name.toString();
-        if (TransportSocketServer.isUserRoom(name)) {
-            throw new ExtendedError(`Forbidden "${name}" room`);
-        }
+        await this.check(name, user);
 
         let clientId = user.clientId;
         switch (params.action) {
