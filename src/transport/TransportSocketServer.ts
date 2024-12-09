@@ -4,8 +4,8 @@ import { ITransportSocketRequestPayload, TransportSocketRequestPayload, ITranspo
 import { Subject, filter, map, Observable } from 'rxjs';
 import { Namespace, Socket } from 'socket.io';
 import { SocketServer, SocketClient } from '../SocketServer';
-import * as _ from 'lodash';
 import { TransportSocketUserId } from '@ts-core/socket-common';
+import * as _ from 'lodash';
 
 export abstract class TransportSocketServer<U = any, V = any> extends SocketServer {
     // --------------------------------------------------------------------------
@@ -198,14 +198,14 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
 
     public async addClientToRoom(client: SocketClient, room: string): Promise<void> {
         let item = this.parseClient(client);
-        if (!_.isNil(client)) {
+        if (!_.isNil(item)) {
             await item.join(room);
         }
     }
 
     public async removeClientFromRoom(client: SocketClient, room: string): Promise<void> {
         let item = this.parseClient(client);
-        if (!_.isNil(client)) {
+        if (!_.isNil(item)) {
             await item.leave(room);
         }
     }
