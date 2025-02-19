@@ -5,7 +5,7 @@ import { TransportSocket } from "../TransportSocket";
 import { ISocketUser } from "../../SocketServer";
 import { TransportSocketServer } from "../TransportSocketServer";
 
-export class TransportSocketRoomHandler<T = string> extends TransportSocketCommandHandler<ITransportSocketRoomDto<T>, TransportSocketRoomCommand<T>> {
+export class TransportSocketRoomHandler extends TransportSocketCommandHandler<ITransportSocketRoomDto<string>, TransportSocketRoomCommand<string>> {
     // --------------------------------------------------------------------------
     //
     //  Constructor
@@ -22,7 +22,7 @@ export class TransportSocketRoomHandler<T = string> extends TransportSocketComma
     //
     // --------------------------------------------------------------------------
 
-    protected async check(name: string, user: ISocketUser<TransportSocketUserId>): Promise<void> {
+    protected async check(name: string, user: ISocketUser<TransportSocketUserId>, action: TransportSocketRoomAction): Promise<void> {
         if (TransportSocketServer.isUserRoom(name)) {
             throw new ExtendedError(`Forbidden "${name}" room`);
         }
@@ -34,12 +34,12 @@ export class TransportSocketRoomHandler<T = string> extends TransportSocketComma
     //
     // --------------------------------------------------------------------------
 
-    public async execute(params: ITransportSocketRoomDto<T>, user: ISocketUser<TransportSocketUserId>): Promise<void> {
-        let name = params.name.toString();
-        await this.check(name, user);
+    public async execute(params: ITransportSocketRoomDto, user: ISocketUser<TransportSocketUserId>): Promise<void> {
+        let { clientId } = user;
+        let { name, action } = params;
+        await this.check(name, user, params.action);
 
-        let clientId = user.clientId;
-        switch (params.action) {
+        switch (action) {
             case TransportSocketRoomAction.ADD:
                 await this.transport.socket.addClientToRoom(clientId, name);
                 break;
@@ -47,7 +47,7 @@ export class TransportSocketRoomHandler<T = string> extends TransportSocketComma
                 await this.transport.socket.removeClientFromRoom(clientId, name);
                 break;
             default:
-                throw new UnreachableStatementError(params.action);
+                throw new UnreachableStatementError(action);
         }
     }
 }
