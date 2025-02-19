@@ -99,8 +99,8 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    public async afterInit(item: Namespace): Promise<void> {
-        await super.afterInit(item);
+    public afterInit(item: Namespace): void {
+        super.afterInit(item);
         this.log(`Transport socket opened on namespace "${item.name}"`);
     }
 

@@ -57,31 +57,30 @@ export abstract class SocketServer extends LoggerWrapper {
     //
     // --------------------------------------------------------------------------
 
-    public async afterInit(item: Namespace): Promise<void> {
+    public afterInit(item: Namespace): void {
         this._namespace = item;
     }
 
-    public async handleConnection(client: Socket): Promise<void> {
-        try {
-            await this.clientConnectionHandler(client);
-            this.clientEventListenersAdd(client);
-        }
-        catch (error) {
-            this.warn(`Connection rejected: ${error.toString()}`);
-            client.disconnect(true);
-        }
+    public handleConnection(client: Socket): void {
+        this.clientConnectionHandler(client)
+            .then(() => {
+                this.clientEventListenersAdd(client);
+            })
+            .catch(error => {
+                this.warn(`Connection rejected: ${error.toString()}`);
+                client.disconnect(true);
+            });
     }
 
-    public async handleDisconnect(client: Socket): Promise<void> {
-        try {
-            await this.clientDisconnectionHandler(client);
-        }
-        catch (error) {
-            this.disconnect(client);
-        }
-        finally {
-            this.clientEventListenersRemove(client);
-        }
+    public handleDisconnect(client: Socket): void {
+        this.clientDisconnectionHandler(client)
+            .catch(error => {
+                this.warn(`Connection rejected: ${error.toString()}`);
+                client.disconnect(true);
+            })
+            .finally(() => {
+                this.clientEventListenersRemove(client);
+            });
     }
 
     public disconnect(client: Socket): void {
