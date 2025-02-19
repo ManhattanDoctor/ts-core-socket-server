@@ -79,9 +79,9 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    protected async getClients(userId?: TransportSocketUserId, isOnlyOne?: boolean): Promise<Set<string>> {
+    protected async getClients(userId?: TransportSocketUserId, isOnlyOne?: boolean): Promise<Array<string>> {
         let items = !_.isNil(userId) ? await this.namespace.to(TransportSocketServer.getUserRoom(userId)).allSockets() : await this.namespace.allSockets();
-        return !isOnlyOne ? items : new Set<string>([items.values().next().value]);
+        return Array.from(!isOnlyOne ? items : new Set<string>([items.values().next().value]));
     }
 
     protected parseClient(client: SocketClient): Socket {
@@ -196,21 +196,23 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    public async addClientToRoom(client: SocketClient, room: string): Promise<void> {
+    public async addClientToRoom(client: SocketClient, room: string): Promise<string> {
         let item = this.parseClient(client);
         if (!_.isNil(item)) {
             await item.join(room);
         }
+        return room;
     }
 
-    public async removeClientFromRoom(client: SocketClient, room: string): Promise<void> {
+    public async removeClientFromRoom(client: SocketClient, room: string): Promise<string> {
         let item = this.parseClient(client);
         if (!_.isNil(item)) {
             await item.leave(room);
         }
+        return room;
     }
 
-    public async disconnectClient(client: SocketClient,): Promise<void> {
+    public async disconnectClient(client: SocketClient): Promise<void> {
         let item = this.parseClient(client);
         if (!_.isNil(item)) {
             this.disconnect(item);

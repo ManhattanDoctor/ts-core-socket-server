@@ -1,11 +1,11 @@
 import { ExtendedError, Logger, UnreachableStatementError } from "@ts-core/common";
 import { TransportSocketRoomCommand, ITransportSocketRoomDto, TransportSocketUserId, TransportSocketRoomAction } from "@ts-core/socket-common";
-import { TransportSocketCommandHandler } from "../TransportSocketCommandHandler";
+import { TransportSocketCommandAsyncHandler } from "../TransportSocketCommandAsyncHandler";
 import { TransportSocket } from "../TransportSocket";
 import { ISocketUser } from "../../SocketServer";
 import { TransportSocketServer } from "../TransportSocketServer";
 
-export class TransportSocketRoomHandler extends TransportSocketCommandHandler<ITransportSocketRoomDto<string>, TransportSocketRoomCommand<string>> {
+export class TransportSocketRoomHandler extends TransportSocketCommandAsyncHandler<ITransportSocketRoomDto, string, TransportSocketRoomCommand> {
     // --------------------------------------------------------------------------
     //
     //  Constructor
@@ -34,18 +34,16 @@ export class TransportSocketRoomHandler extends TransportSocketCommandHandler<IT
     //
     // --------------------------------------------------------------------------
 
-    public async execute(params: ITransportSocketRoomDto, user: ISocketUser<TransportSocketUserId>): Promise<void> {
+    public async execute(params: ITransportSocketRoomDto, user: ISocketUser<TransportSocketUserId>): Promise<string> {
         let { clientId } = user;
         let { name, action } = params;
         await this.check(name, user, params.action);
 
         switch (action) {
             case TransportSocketRoomAction.ADD:
-                await this.transport.socket.addClientToRoom(clientId, name);
-                break;
+                return this.transport.socket.addClientToRoom(clientId, name);
             case TransportSocketRoomAction.REMOVE:
-                await this.transport.socket.removeClientFromRoom(clientId, name);
-                break;
+                return this.transport.socket.removeClientFromRoom(clientId, name);
             default:
                 throw new UnreachableStatementError(action);
         }
