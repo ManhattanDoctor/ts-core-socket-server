@@ -111,7 +111,6 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         }
         catch (error) {
             client.emit(TRANSPORT_SOCKET_ERROR, ExtendedError.create(error).toObject());
-            throw error;
         }
     }
 
