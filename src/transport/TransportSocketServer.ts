@@ -3,7 +3,7 @@ import { ILogger, ObservableData, ITransportEvent, ExtendedError } from '@ts-cor
 import { ITransportSocketRequestPayload, TransportSocketRequestPayload, ITransportSocketResponsePayload, TRANSPORT_SOCKET_CONNECTED, TRANSPORT_SOCKET_COMMAND_REQUEST_METHOD, TRANSPORT_SOCKET_COMMAND_RESPONSE_METHOD, TRANSPORT_SOCKET_EVENT, ITransportSocketEventOptions, TRANSPORT_SOCKET_ERROR } from '@ts-core/socket-common';
 import { Subject, filter, map, Observable } from 'rxjs';
 import { Namespace, Socket } from 'socket.io';
-import { SocketServer, SocketClient } from '../SocketServer';
+import { SocketServer, SocketClientId } from '../SocketServer';
 import { TransportSocketUserId } from '@ts-core/socket-common';
 import * as _ from 'lodash';
 
@@ -84,13 +84,6 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         return Array.from(!isOnlyOne ? items : new Set<string>([items.values().next().value]));
     }
 
-    protected parseClient(client: SocketClient): Socket {
-        if (_.isNil(client)) {
-            return null;
-        }
-        return _.isString(client) ? this.namespace.sockets.get(client) : client;
-    }
-
     protected abstract getClientUserId(client: Socket): Promise<TransportSocketUserId>;
 
     // --------------------------------------------------------------------------
@@ -157,8 +150,8 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         items.forEach(item => this.emitToClient(name, data, item));
     }
 
-    public async emitToClient<T>(name: string, data: T, client: SocketClient): Promise<void> {
-        let item = this.parseClient(client);
+    public async emitToClient<T>(name: string, data: T, client: SocketClientId): Promise<void> {
+        let item = this.getClient(client);
         if (!_.isNil(item)) {
             item.emit(name, data);
         }
@@ -195,24 +188,28 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    public async addClientToRoom(client: SocketClient, room: string): Promise<string> {
-        let item = this.parseClient(client);
+    public getClient(client: SocketClientId): Socket {
+        return _.isString(client) ? this.namespace.sockets.get(client) : client;
+    }
+
+    public async addClientToRoom(client: SocketClientId, room: string): Promise<string> {
+        let item = this.getClient(client);
         if (!_.isNil(item)) {
             await item.join(room);
         }
         return room;
     }
 
-    public async removeClientFromRoom(client: SocketClient, room: string): Promise<string> {
-        let item = this.parseClient(client);
+    public async removeClientFromRoom(client: SocketClientId, room: string): Promise<string> {
+        let item = this.getClient(client);
         if (!_.isNil(item)) {
             await item.leave(room);
         }
         return room;
     }
 
-    public async disconnectClient(client: SocketClient): Promise<void> {
-        let item = this.parseClient(client);
+    public async disconnectClient(client: SocketClientId): Promise<void> {
+        let item = this.getClient(client);
         if (!_.isNil(item)) {
             this.disconnect(item);
         }

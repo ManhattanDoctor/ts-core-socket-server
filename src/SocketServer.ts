@@ -103,4 +103,4 @@ export interface ISocketUser<U extends TransportSocketUserId = TransportSocketUs
     clientId: string;
 }
 
-export type SocketClient = string | Socket;
+export type SocketClientId = string | Socket;
