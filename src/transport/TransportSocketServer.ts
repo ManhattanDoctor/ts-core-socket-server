@@ -157,7 +157,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         }
     }
 
-    public async emitToRoom<T>(name: string, data: T, room: string): Promise<void> {
+    public async emitToRoom<T>(name: string, data: T, room: string | Array<string>): Promise<void> {
         this.namespace.to(room).emit(name, data);
     }
 
@@ -167,7 +167,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    public async addUserToRoom(userId: TransportSocketUserId, room: string): Promise<void> {
+    public async addUserToRoom(userId: TransportSocketUserId, room: string | Array<string>): Promise<void> {
         let items = await this.getClients(userId);
         items.forEach(item => this.addClientToRoom(item, room));
     }
@@ -192,12 +192,12 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
         return _.isString(client) ? this.namespace.sockets.get(client) : client;
     }
 
-    public async addClientToRoom(client: SocketClientId, room: string): Promise<string> {
+    public async addClientToRoom(client: SocketClientId, room: string | Array<string>): Promise<string> {
         let item = this.getClient(client);
         if (!_.isNil(item)) {
             await item.join(room);
         }
-        return room;
+        return _.isArray(room) ? _.first(room) : room;
     }
 
     public async removeClientFromRoom(client: SocketClientId, room: string): Promise<string> {
