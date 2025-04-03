@@ -103,7 +103,9 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
             await this.clientHandshake(client);
         }
         catch (error) {
-            client.emit(TRANSPORT_SOCKET_ERROR, ExtendedError.create(error).toObject());
+            error = ExtendedError.create(error).toObject();
+            client.emit(TRANSPORT_SOCKET_ERROR, error);
+            throw error;
         }
     }
 
