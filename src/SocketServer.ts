@@ -67,7 +67,7 @@ export abstract class SocketServer extends LoggerWrapper {
                 this.clientEventListenersAdd(client);
             })
             .catch(error => {
-                this.warn(`Connection rejected: ${error.toString()}`);
+                this.warn(`Connection rejected: ${error.message}`);
                 client.disconnect(true);
             });
     }
@@ -75,7 +75,7 @@ export abstract class SocketServer extends LoggerWrapper {
     public handleDisconnect(client: Socket): void {
         this.clientDisconnectionHandler(client)
             .catch(error => {
-                this.warn(`Connection rejected: ${error.toString()}`);
+                this.warn(`Connection rejected: ${error.message}`);
                 client.disconnect(true);
             })
             .finally(() => {
