@@ -18,20 +18,6 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
 
     // --------------------------------------------------------------------------
     //
-    //  Static Methods
-    //
-    // --------------------------------------------------------------------------
-
-    public static isUserRoom(room: string): boolean {
-        return TransportSocketServer.USER_ROOM_REG_EXP.test(room);
-    }
-
-    public static getUserRoom(id: TransportSocketUserId): string {
-        return `user${id}`;
-    }
-
-    // --------------------------------------------------------------------------
-    //
     //  Properties
     //
     // --------------------------------------------------------------------------
@@ -51,13 +37,27 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
 
     // --------------------------------------------------------------------------
     //
+    //  Room Methods
+    //
+    // --------------------------------------------------------------------------
+
+    public isUserRoom(room: string): boolean {
+        return TransportSocketServer.USER_ROOM_REG_EXP.test(room);
+    }
+
+    public getUserRoom(id: TransportSocketUserId): string {
+        return `user${id}`;
+    }
+
+    // --------------------------------------------------------------------------
+    //
     //  Protected Methods
     //
     // --------------------------------------------------------------------------
 
     protected async clientHandshake(client: Socket): Promise<void> {
         let userId = client.data.userId = await this.getClientUserId(client);
-        await this.addClientToRoom(client.id, TransportSocketServer.getUserRoom(userId));
+        await this.addClientToRoom(client.id, this.getUserRoom(userId));
         client.emit(TRANSPORT_SOCKET_CONNECTED);
     }
 
@@ -80,7 +80,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     // --------------------------------------------------------------------------
 
     protected async getClients(userId?: TransportSocketUserId, isOnlyOne?: boolean): Promise<Array<string>> {
-        let items = !_.isNil(userId) ? await this.namespace.to(TransportSocketServer.getUserRoom(userId)).allSockets() : await this.namespace.allSockets();
+        let items = !_.isNil(userId) ? await this.namespace.to(this.getUserRoom(userId)).allSockets() : await this.namespace.allSockets();
         return Array.from(!isOnlyOne ? items : new Set<string>([items.values().next().value]));
     }
 

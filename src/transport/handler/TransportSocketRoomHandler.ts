@@ -23,7 +23,7 @@ export class TransportSocketRoomHandler extends TransportSocketCommandAsyncHandl
     // --------------------------------------------------------------------------
 
     protected async check(name: string, user: ISocketUser<TransportSocketUserId>, action: TransportSocketRoomAction): Promise<void> {
-        if (TransportSocketServer.isUserRoom(name)) {
+        if (this.transport.socket.isUserRoom(name)) {
             throw new ExtendedError(`Forbidden "${name}" room`);
         }
     }
