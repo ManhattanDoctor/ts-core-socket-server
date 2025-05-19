@@ -3,7 +3,6 @@ import { TransportSocketRoomCommand, ITransportSocketRoomDto, TransportSocketUse
 import { TransportSocketCommandAsyncHandler } from "../TransportSocketCommandAsyncHandler";
 import { TransportSocket } from "../TransportSocket";
 import { ISocketUser } from "../../SocketServer";
-import { TransportSocketServer } from "../TransportSocketServer";
 
 export class TransportSocketRoomHandler extends TransportSocketCommandAsyncHandler<ITransportSocketRoomDto, string, TransportSocketRoomCommand> {
     // --------------------------------------------------------------------------

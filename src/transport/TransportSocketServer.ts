@@ -14,7 +14,7 @@ export abstract class TransportSocketServer<U = any, V = any> extends SocketServ
     //
     // --------------------------------------------------------------------------
 
-    public static USER_ROOM_REG_EXP = new RegExp(`user[0-9]+$`);
+    protected static USER_ROOM_REG_EXP = new RegExp(`user[0-9]+$`);
 
     // --------------------------------------------------------------------------
     //
