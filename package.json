@@ -1,7 +1,7 @@
 {
     "name": "@ts-core/socket-server",
     "version": "3.0.28",
-    "description": "Classes and utils for socket-server",
+    "description": "TypeScript WebSocket server library based on Socket.IO with RxJS support, rooms management, user sessions, and command handlers",
     "main": "./cjs/public-api.js",
     "module": "./esm/public-api.js",
     "exports": {
@@ -26,13 +26,21 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/ManhattanDoctor/ts-core-socket-client.git"
+        "url": "git+https://github.com/ManhattanDoctor/ts-core-socket-server.git"
     },
     "keywords": [
-        "typescript"
+        "typescript",
+        "websocket",
+        "socket.io",
+        "socket-server",
+        "rxjs",
+        "real-time",
+        "rooms",
+        "nestjs",
+        "ts-core"
     ],
     "bugs": {
-        "url": "https://github.com/ManhattanDoctor/ts-core-socket-client/issues"
+        "url": "https://github.com/ManhattanDoctor/ts-core-socket-server/issues"
     },
-    "homepage": "https://github.com/ManhattanDoctor/ts-core-socket-client#readme"
+    "homepage": "https://github.com/ManhattanDoctor/ts-core-socket-server#readme"
 }
